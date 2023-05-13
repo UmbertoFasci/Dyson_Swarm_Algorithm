@@ -1,0 +1,334 @@
+#+title: Dyson Algorithm
+
+#+begin_src jupyter-python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+# Define parameters
+num_agents = 1000
+num_points = 10
+radius = 1
+
+# Generate random positions for agents and energy points on the surface of the sphere
+theta = np.random.uniform(0, np.pi, num_agents)
+phi = np.random.uniform(0, 2 * np.pi, num_agents)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+agents = np.column_stack((x, y, z))
+
+theta = np.random.uniform(0, np.pi, num_points)
+phi = np.random.uniform(0, 2 * np.pi, num_points)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+points = np.column_stack((x, y, z, np.random.randint(0, 2, num_points)))
+
+# Initialize plot
+fig = plt.figure(figsize=(8, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim([-1.1, 1.1])
+ax.set_ylim([-1.1, 1.1])
+ax.set_zlim([-1.1, 1.1])
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+agents_scatter = ax.scatter(agents[:, 0], agents[:, 1], agents[:, 2], c='r', s=10)
+points_scatter = ax.scatter(points[:, 0], points[:, 1], points[:, 2], c='g', s=50)
+
+# Define animation function
+def update(frame):
+    global agents, points
+    # Generate new random positions for energy points on the surface of the sphere
+    theta = np.random.uniform(0, np.pi, num_points)
+    phi = np.random.uniform(0, 2 * np.pi, num_points)
+    x = radius * np.sin(theta) * np.cos(phi)
+    y = radius * np.sin(theta) * np.sin(phi)
+    z = radius * np.cos(theta)
+    points = np.column_stack((x, y, z, np.random.randint(0, 2, num_points)))
+
+    # Calculate distance between each agent and each point
+    distances = np.sqrt(np.sum((agents[:, np.newaxis, :] - points[np.newaxis, :, :3]) ** 2, axis=-1))
+
+    # Assign each point to the closest agent and sum energy collected by each agent
+    energy_collected = np.zeros(num_agents)
+    for i in range(num_points):
+        closest_agent = np.argmin(distances[:, i])
+        energy_collected[closest_agent] += points[i][-1]
+
+    # Update positions and colors of agents and energy points
+    agents_scatter._offsets3d = agents[:, 0], agents[:, 1], agents[:, 2]
+    agents_scatter._facecolor3d = plt.cm.get_cmap('Reds')(energy_collected / num_points)
+    points_scatter._offsets3d = points[:, 0], points[:, 1], points[:, 2]
+    points_scatter._facecolor3d = np.array(['green', 'red'])[points[:, -1]]
+
+    return agents_scatter, points_scatter
+
+# Animate plot
+ani = FuncAnimation(fig, update, frames=100)
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: Error in callback <function _draw_all_if_interactive at 0x110af51b0> (for post_execute):
+: /var/folders/41/4m81f87d31bdzxy69f3rzd1c0000gn/T/ipykernel_14295/1850515543.py:60: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap(obj)`` instead.
+:   agents_scatter._facecolor3d = plt.cm.get_cmap('Reds')(energy_collected / num_points)
+# [goto error]
+#+begin_example
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mIndexError[0m                                Traceback (most recent call last)
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/pyplot.py:120[0m, in [0;36m_draw_all_if_interactive[0;34m()[0m
+[1;32m    118[0m [38;5;28;01mdef[39;00m [38;5;21m_draw_all_if_interactive[39m():
+[1;32m    119[0m     [38;5;28;01mif[39;00m matplotlib[38;5;241m.[39mis_interactive():
+[0;32m--> 120[0m         [43mdraw_all[49m[43m([49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/_pylab_helpers.py:132[0m, in [0;36mGcf.draw_all[0;34m(cls, force)[0m
+[1;32m    130[0m [38;5;28;01mfor[39;00m manager [38;5;129;01min[39;00m [38;5;28mcls[39m[38;5;241m.[39mget_all_fig_managers():
+[1;32m    131[0m     [38;5;28;01mif[39;00m force [38;5;129;01mor[39;00m manager[38;5;241m.[39mcanvas[38;5;241m.[39mfigure[38;5;241m.[39mstale:
+[0;32m--> 132[0m         [43mmanager[49m[38;5;241;43m.[39;49m[43mcanvas[49m[38;5;241;43m.[39;49m[43mdraw_idle[49m[43m([49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/backend_bases.py:2078[0m, in [0;36mFigureCanvasBase.draw_idle[0;34m(self, *args, **kwargs)[0m
+[1;32m   2076[0m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m [38;5;28mself[39m[38;5;241m.[39m_is_idle_drawing:
+[1;32m   2077[0m     [38;5;28;01mwith[39;00m [38;5;28mself[39m[38;5;241m.[39m_idle_draw_cntx():
+[0;32m-> 2078[0m         [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mdraw[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/backends/backend_agg.py:400[0m, in [0;36mFigureCanvasAgg.draw[0;34m(self)[0m
+[1;32m    396[0m [38;5;66;03m# Acquire a lock on the shared font cache.[39;00m
+[1;32m    397[0m [38;5;28;01mwith[39;00m RendererAgg[38;5;241m.[39mlock, \
+[1;32m    398[0m      ([38;5;28mself[39m[38;5;241m.[39mtoolbar[38;5;241m.[39m_wait_cursor_for_draw_cm() [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39mtoolbar
+[1;32m    399[0m       [38;5;28;01melse[39;00m nullcontext()):
+[0;32m--> 400[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mfigure[49m[38;5;241;43m.[39;49m[43mdraw[49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mrenderer[49m[43m)[49m
+[1;32m    401[0m     [38;5;66;03m# A GUI class may be need to update a window using this draw, so[39;00m
+[1;32m    402[0m     [38;5;66;03m# don't forget to call the superclass.[39;00m
+[1;32m    403[0m     [38;5;28msuper[39m()[38;5;241m.[39mdraw()
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/artist.py:95[0m, in [0;36m_finalize_rasterization.<locals>.draw_wrapper[0;34m(artist, renderer, *args, **kwargs)[0m
+[1;32m     93[0m [38;5;129m@wraps[39m(draw)
+[1;32m     94[0m [38;5;28;01mdef[39;00m [38;5;21mdraw_wrapper[39m(artist, renderer, [38;5;241m*[39margs, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[0;32m---> 95[0m     result [38;5;241m=[39m [43mdraw[49m[43m([49m[43martist[49m[43m,[49m[43m [49m[43mrenderer[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m     96[0m     [38;5;28;01mif[39;00m renderer[38;5;241m.[39m_rasterizing:
+[1;32m     97[0m         renderer[38;5;241m.[39mstop_rasterizing()
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/artist.py:72[0m, in [0;36mallow_rasterization.<locals>.draw_wrapper[0;34m(artist, renderer)[0m
+[1;32m     69[0m     [38;5;28;01mif[39;00m artist[38;5;241m.[39mget_agg_filter() [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[1;32m     70[0m         renderer[38;5;241m.[39mstart_filter()
+[0;32m---> 72[0m     [38;5;28;01mreturn[39;00m [43mdraw[49m[43m([49m[43martist[49m[43m,[49m[43m [49m[43mrenderer[49m[43m)[49m
+[1;32m     73[0m [38;5;28;01mfinally[39;00m:
+[1;32m     74[0m     [38;5;28;01mif[39;00m artist[38;5;241m.[39mget_agg_filter() [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/figure.py:3135[0m, in [0;36mFigure.draw[0;34m(self, renderer)[0m
+[1;32m   3132[0m [38;5;28;01mfinally[39;00m:
+[1;32m   3133[0m     [38;5;28mself[39m[38;5;241m.[39mstale [38;5;241m=[39m [38;5;28;01mFalse[39;00m
+[0;32m-> 3135[0m [43mDrawEvent[49m[43m([49m[38;5;124;43m"[39;49m[38;5;124;43mdraw_event[39;49m[38;5;124;43m"[39;49m[43m,[49m[43m [49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mcanvas[49m[43m,[49m[43m [49m[43mrenderer[49m[43m)[49m[38;5;241;43m.[39;49m[43m_process[49m[43m([49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/backend_bases.py:1259[0m, in [0;36mEvent._process[0;34m(self)[0m
+[1;32m   1257[0m [38;5;28;01mdef[39;00m [38;5;21m_process[39m([38;5;28mself[39m):
+[1;32m   1258[0m [38;5;250m    [39m[38;5;124;03m"""Generate an event with name ``self.name`` on ``self.canvas``."""[39;00m
+[0;32m-> 1259[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mcanvas[49m[38;5;241;43m.[39;49m[43mcallbacks[49m[38;5;241;43m.[39;49m[43mprocess[49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mname[49m[43m,[49m[43m [49m[38;5;28;43mself[39;49m[43m)[49m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/cbook/__init__.py:309[0m, in [0;36mCallbackRegistry.process[0;34m(self, s, *args, **kwargs)[0m
+[1;32m    307[0m [38;5;28;01mexcept[39;00m [38;5;167;01mException[39;00m [38;5;28;01mas[39;00m exc:
+[1;32m    308[0m     [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39mexception_handler [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[0;32m--> 309[0m         [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mexception_handler[49m[43m([49m[43mexc[49m[43m)[49m
+[1;32m    310[0m     [38;5;28;01melse[39;00m:
+[1;32m    311[0m         [38;5;28;01mraise[39;00m
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/cbook/__init__.py:96[0m, in [0;36m_exception_printer[0;34m(exc)[0m
+[1;32m     94[0m [38;5;28;01mdef[39;00m [38;5;21m_exception_printer[39m(exc):
+[1;32m     95[0m     [38;5;28;01mif[39;00m _get_running_interactive_framework() [38;5;129;01min[39;00m [[38;5;124m"[39m[38;5;124mheadless[39m[38;5;124m"[39m, [38;5;28;01mNone[39;00m]:
+[0;32m---> 96[0m         [38;5;28;01mraise[39;00m exc
+[1;32m     97[0m     [38;5;28;01melse[39;00m:
+[1;32m     98[0m         traceback[38;5;241m.[39mprint_exc()
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/cbook/__init__.py:304[0m, in [0;36mCallbackRegistry.process[0;34m(self, s, *args, **kwargs)[0m
+[1;32m    302[0m [38;5;28;01mif[39;00m func [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[1;32m    303[0m     [38;5;28;01mtry[39;00m:
+[0;32m--> 304[0m         [43mfunc[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m    305[0m     [38;5;66;03m# this does not capture KeyboardInterrupt, SystemExit,[39;00m
+[1;32m    306[0m     [38;5;66;03m# and GeneratorExit[39;00m
+[1;32m    307[0m     [38;5;28;01mexcept[39;00m [38;5;167;01mException[39;00m [38;5;28;01mas[39;00m exc:
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/animation.py:900[0m, in [0;36mAnimation._start[0;34m(self, *args)[0m
+[1;32m    897[0m [38;5;28mself[39m[38;5;241m.[39m_fig[38;5;241m.[39mcanvas[38;5;241m.[39mmpl_disconnect([38;5;28mself[39m[38;5;241m.[39m_first_draw_id)
+[1;32m    899[0m [38;5;66;03m# Now do any initial draw[39;00m
+[0;32m--> 900[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_init_draw[49m[43m([49m[43m)[49m
+[1;32m    902[0m [38;5;66;03m# Add our callback for stepping the animation and[39;00m
+[1;32m    903[0m [38;5;66;03m# actually start the event_source.[39;00m
+[1;32m    904[0m [38;5;28mself[39m[38;5;241m.[39mevent_source[38;5;241m.[39madd_callback([38;5;28mself[39m[38;5;241m.[39m_step)
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/animation.py:1740[0m, in [0;36mFuncAnimation._init_draw[0;34m(self)[0m
+[1;32m   1732[0m         warnings[38;5;241m.[39mwarn(
+[1;32m   1733[0m             [38;5;124m"[39m[38;5;124mCan not start iterating the frames for the initial draw. [39m[38;5;124m"[39m
+[1;32m   1734[0m             [38;5;124m"[39m[38;5;124mThis can be caused by passing in a 0 length sequence [39m[38;5;124m"[39m
+[0;32m   (...)[0m
+[1;32m   1737[0m             [38;5;124m"[39m[38;5;124mit may be exhausted due to a previous display or save.[39m[38;5;124m"[39m
+[1;32m   1738[0m         )
+[1;32m   1739[0m         [38;5;28;01mreturn[39;00m
+[0;32m-> 1740[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_draw_frame[49m[43m([49m[43mframe_data[49m[43m)[49m
+[1;32m   1741[0m [38;5;28;01melse[39;00m:
+[1;32m   1742[0m     [38;5;28mself[39m[38;5;241m.[39m_drawn_artists [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39m_init_func()
+
+File [0;32m~/miniforge3/envs/tensorflow-metal/lib/python3.10/site-packages/matplotlib/animation.py:1759[0m, in [0;36mFuncAnimation._draw_frame[0;34m(self, framedata)[0m
+[1;32m   1755[0m     [38;5;28mself[39m[38;5;241m.[39m_save_seq [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39m_save_seq[[38;5;241m-[39m[38;5;28mself[39m[38;5;241m.[39m_save_count:]
+[1;32m   1757[0m [38;5;66;03m# Call the func with framedata and args. If blitting is desired,[39;00m
+[1;32m   1758[0m [38;5;66;03m# func needs to return a sequence of any artists that were modified.[39;00m
+[0;32m-> 1759[0m [38;5;28mself[39m[38;5;241m.[39m_drawn_artists [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_func[49m[43m([49m[43mframedata[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_args[49m[43m)[49m
+[1;32m   1761[0m [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39m_blit:
+[1;32m   1763[0m     err [38;5;241m=[39m [38;5;167;01mRuntimeError[39;00m([38;5;124m'[39m[38;5;124mThe animation function must return a sequence [39m[38;5;124m'[39m
+[1;32m   1764[0m                        [38;5;124m'[39m[38;5;124mof Artist objects.[39m[38;5;124m'[39m)
+
+Cell [0;32mIn[7], line 62[0m, in [0;36mupdate[0;34m(frame)[0m
+[1;32m     60[0m agents_scatter[38;5;241m.[39m_facecolor3d [38;5;241m=[39m plt[38;5;241m.[39mcm[38;5;241m.[39mget_cmap([38;5;124m'[39m[38;5;124mReds[39m[38;5;124m'[39m)(energy_collected [38;5;241m/[39m num_points)
+[1;32m     61[0m points_scatter[38;5;241m.[39m_offsets3d [38;5;241m=[39m points[:, [38;5;241m0[39m], points[:, [38;5;241m1[39m], points[:, [38;5;241m2[39m]
+[0;32m---> 62[0m points_scatter[38;5;241m.[39m_facecolor3d [38;5;241m=[39m [43mnp[49m[38;5;241;43m.[39;49m[43marray[49m[43m([49m[43m[[49m[38;5;124;43m'[39;49m[38;5;124;43mgreen[39;49m[38;5;124;43m'[39;49m[43m,[49m[43m [49m[38;5;124;43m'[39;49m[38;5;124;43mred[39;49m[38;5;124;43m'[39;49m[43m][49m[43m)[49m[43m[[49m[43mpoints[49m[43m[[49m[43m:[49m[43m,[49m[43m [49m[38;5;241;43m-[39;49m[38;5;241;43m1[39;49m[43m][49m[43m][49m
+[1;32m     64[0m [38;5;28;01mreturn[39;00m agents_scatter, points_scatter
+
+[0;31mIndexError[0m: arrays used as indices must be of integer (or boolean) type
+#+end_example
+[[file:./.ob-jupyter/0a20ebcf69547ebd55def05dc188c45764fcce4b.png]]
+:END:
+
+#+begin_src jupyter-python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+# Define parameters
+num_agents = 10
+num_points = 1000
+radius = 1
+
+# Generate random positions for agents on the surface of the sphere
+theta = np.random.uniform(0, np.pi, num_agents)
+phi = np.random.uniform(0, 2 * np.pi, num_agents)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+agents = np.column_stack((x, y, z))
+
+# Create a gradient surface on the sphere
+phi, theta = np.meshgrid(np.linspace(0, 2 * np.pi, 100), np.linspace(0, np.pi, 100))
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+surface = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+# Reshape the surface as a 1D array for easier indexing
+surface_flat = surface.ravel()
+
+# Generate random positions for energy points on the surface of the sphere
+theta = np.random.uniform(0, np.pi, num_points)
+phi = np.random.uniform(0, 2 * np.pi, num_points)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+
+# Assign energy values to the points based on their position on the surface
+indices = np.floor((np.arctan2(y, x) + np.pi) / (2 * np.pi) * 100) * 100 + np.floor((np.arccos(z) / np.pi) * 100)
+points = np.column_stack((x, y, z, surface_flat[indices.astype(int)]))
+
+# Initialize plot
+fig = plt.figure(figsize=(8, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim([-1.1, 1.1])
+ax.set_ylim([-1.1, 1.1])
+ax.set_zlim([-1.1, 1.1])
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+agents_scatter = ax.scatter(agents[:, 0], agents[:, 1], agents[:, 2], c='r', s=50)
+points_scatter = ax.scatter(points[:, 0], points[:, 1], points[:, 2], c='g', s=10)
+
+# Define animation function
+def update(frame):
+    global agents, points
+    # Generate new random positions for energy points on the surface of the sphere
+    theta = np.random.uniform(0, np.pi, num_points)
+    phi = np.random.uniform(0, 2 * np.pi, num_points)
+    x = radius * np.sin(theta) * np.cos(phi)
+    y = radius * np.sin(theta) * np.sin(phi)
+    z = radius * np.cos(theta)
+
+    # Assign energy values to the points based on their position on the surface
+#    indices = np.floor((np.arctan2(y, x) + np.pi) / (2 * np.pi) * 100) * 100 + np.floor((np.arccos(z) / np.pi) *
+
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/377c5fb6377f236f2f2e7ad0a1b9c07ab9039933.png]]
+
+#+begin_src jupyter-python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+# Define parameters
+num_agents = 10
+radius = 1
+
+# Generate random positions for agents on the surface of the sphere
+theta = np.random.uniform(0, np.pi, num_agents)
+phi = np.random.uniform(0, 2 * np.pi, num_agents)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+agents = np.column_stack((x, y, z))
+
+# Generate a gradient surface of data on the sphere
+num_points = 5000
+theta = np.linspace(0, np.pi, num_points)
+phi = np.linspace(0, 2 * np.pi, num_points)
+theta, phi = np.meshgrid(theta, phi)
+x = radius * np.sin(theta) * np.cos(phi)
+y = radius * np.sin(theta) * np.sin(phi)
+z = radius * np.cos(theta)
+data = np.sin(10 * theta) * np.sin(phi)
+
+# Initialize plot
+fig = plt.figure(figsize=(8, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim([-1.1, 1.1])
+ax.set_ylim([-1.1, 1.1])
+ax.set_zlim([-1.1, 1.1])
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+agents_scatter = ax.scatter(agents[:, 0], agents[:, 1], agents[:, 2], c='r', s=50)
+points_surface = ax.plot_surface(x, y, z, facecolors=plt.colormaps.get_cmap('winter')(data), alpha=0.5)
+
+# Define animation function
+def update(frame):
+    global agents, data
+    # Generate random positions for agents on the surface of the sphere
+    theta = np.random.uniform(0, np.pi, num_agents)
+    phi = np.random.uniform(0, 2 * np.pi, num_agents)
+    x = radius * np.sin(theta) * np.cos(phi)
+    y = radius * np.sin(theta) * np.sin(phi)
+    z = radius * np.cos(theta)
+    agents = np.column_stack((x, y, z))
+
+    # Calculate value of data at each agent's position
+    idx = np.round(((theta / np.pi) * (num_points - 1))).astype(int)
+    idy = np.round(((phi / (2 * np.pi)) * (num_points - 1))).astype(int)
+    values = data[idx, idy]
+
+    # Update positions and colors of agents
+    agents_scatter._offsets3d = agents[:, 0], agents[:, 1], agents[:, 2]
+    agents_scatter._facecolor3d = plt.colormaps.get_cmap('Reds')(values)
+
+    return agents_scatter, points_surface
+
+# Animate plot
+ani = FuncAnimation(fig, update, frames=100, interval=100, blit=True)
+
+# Save animation as GIF
+ani.save('gradient_sphere.gif', writer='pillow')
+
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/fa72ab6828b3768be838d7b71e298b38830a75e0.png]]
