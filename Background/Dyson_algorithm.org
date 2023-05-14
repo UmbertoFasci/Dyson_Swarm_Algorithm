@@ -37,8 +37,8 @@ ax.set_zlim([-1.1, 1.1])
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
-agents_scatter = ax.scatter(agents[:, 0], agents[:, 1], agents[:, 2], c='r', s=50)
-points_surface = ax.plot_surface(x, y, z, facecolors=plt.colormaps.get_cmap('winter')(data), alpha=0.5)
+agents_scatter = ax.scatter(agents[:, 0], agents[:, 1], agents[:, 2], c='g', s=50)
+points_surface = ax.plot_surface(x, y, z, facecolors=plt.colormaps.get_cmap('Reds')(data), alpha=0.5)
 
 # Define animation function
 def update(frame):
@@ -71,4 +71,4 @@ ani.save('gradient_sphere.gif', writer='pillow')
 #+end_src
 
 #+RESULTS:
-[[file:./.ob-jupyter/fa72ab6828b3768be838d7b71e298b38830a75e0.png]]
+[[file:./.ob-jupyter/bd322271994cb62aa9f8cb18e6dc88411babbfa0.png]]
