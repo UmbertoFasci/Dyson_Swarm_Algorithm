@@ -1,6 +1,6 @@
 #+title: Dyson Algorithm
 
-#+begin_src jupyter-python
+#+begin_src jupyter-python :file gradient_sphere.gif
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -30,6 +30,7 @@ data = np.sin(10 * theta) * np.sin(phi)
 
 # Initialize plot
 fig = plt.figure(figsize=(8, 8))
+plt.style.use('dark_background')
 ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim([-1.1, 1.1])
 ax.set_ylim([-1.1, 1.1])
@@ -71,4 +72,4 @@ ani.save('gradient_sphere.gif', writer='pillow')
 #+end_src
 
 #+RESULTS:
-[[file:./.ob-jupyter/bd322271994cb62aa9f8cb18e6dc88411babbfa0.png]]
+[[file:gradient_sphere.gif]]
