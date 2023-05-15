@@ -135,12 +135,9 @@ from matplotlib.animation import FuncAnimation
 ani = FuncAnimation(fig, animate, frames=360, interval=50)
 
 # Save animation as gif
-ani.save('particle_animation.gif', writer='imagemagick')
+ani.save('particle_animation.gif', writer='pillow')
 
 #+end_src
 
 #+RESULTS:
-:RESULTS:
-: MovieWriter imagemagick unavailable; using Pillow instead.
 [[file:./.ob-jupyter/bd6d0a1491600f6e1ddbcb2f7780dfec0088686d.png]]
-:END:
