@@ -1,79 +1,71 @@
 #+title: Dyson Algorithm
 
-
-#+begin_src jupyter-python :file gradient_sphere.gif
+#+begin_src jupyter-python
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from mpl_toolkits.mplot3d import Axes3D
 
-def f(x,y):
-    "Objective function"
-    return (x-3.14)**2 + (y-2.72)**2 + np.sin(3*x+1.41) + np.sin(4*y-1.73)
+def sphere(x, y, z):
+    return x**2 + y**2 + z**2
 
-# Define function to project points onto a sphere
-def project_onto_sphere(x, y, z, r=5):
-    # Compute polar coordinates
-    theta = np.arctan2(y, x)
-    phi = np.arctan2(z, np.sqrt(x**2 + y**2))
-    # Compute projected coordinates
-    x_proj = r * np.sin(phi) * np.cos(theta)
-    y_proj = r * np.sin(phi) * np.sin(theta)
-    z_proj = r * np.cos(phi)
-    return x_proj, y_proj, z_proj
+def generate_sphere_points(n):
+    phi = np.random.uniform(0, np.pi, n)
+    theta = np.random.uniform(0, 2*np.pi, n)
+    x = np.sin(phi) * np.cos(theta)
+    y = np.sin(phi) * np.sin(theta)
+    z = np.cos(phi)
+    return np.column_stack([x, y, z])
 
-# Compute and plot the function in 3D within [0,5]x[0,5]
-x, y = np.meshgrid(np.linspace(0,5,100), np.linspace(0,5,100))
-z = f(x, y)
+def pso_sphere(n_particles, n_iterations, w=0.5, c1=0.8, c2=0.9):
+    swarm = generate_sphere_points(n_particles)
+    v = np.zeros((n_particles, 3))
+    pbest = swarm
+    gbest = pbest[np.argmin(sphere(*pbest.T)), :]
+    for i in range(n_iterations):
+        r1 = np.random.uniform(size=(n_particles, 3))
+        r2 = np.random.uniform(size=(n_particles, 3))
+        v = w*v + c1*r1*(pbest-swarm) + c2*r2*(gbest-swarm)
+        swarm = swarm + v
+        pbest_vals = sphere(*pbest.T)
+        swarm_vals = sphere(*swarm.T)
+        new_pbest = np.where(pbest_vals<swarm_vals, pbest, swarm)
+        gbest = new_pbest[np.argmin(sphere(*new_pbest.T)), :]
+        pbest = new_pbest
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
+        ax.set_zlim(-1, 1)
+        ax.scatter(swarm[:,0], swarm[:,1], swarm[:,2], color='blue')
+        ax.scatter(gbest[0], gbest[1], gbest[2], color='red')
+        plt.title(f'Iteration {i+1}')
+        plt.savefig(f'pso_sphere_{i+1}.png')
+        plt.close(fig)
 
-# Find the global minimum
-x_min = x.ravel()[z.argmin()]
-y_min = y.ravel()[z.argmin()]
-
-# Hyper-parameter of the algorithm
-c1 = c2 = 0.1
-w = 0.8
-
-# Create particles
-n_particles = 20
-np.random.seed(100)
-X = np.random.rand(3, n_particles) * 5
-V = np.random.randn(3, n_particles) * 0.1
-
-# Initialize data
-pbest = X
-pbest_obj = f(X[0], X[1])
-gbest = pbest[:, pbest_obj.argmin()]
-gbest_obj = pbest_obj.min()
-
-def update():
-    "Function to do one iteration of particle swarm optimization"
-    global V, X, pbest, pbest_obj, gbest, gbest_obj
-    # Update params
-    r1, r2 = np.random.rand(2)
-    V = w * V + c1*r1*(pbest - X) + c2*r2*(gbest.reshape(-1,1)-X)
-    X = X + V
-    obj = f(X[0], X[1])
-    pbest[:, (pbest_obj >= obj)] = X[:, (pbest_obj >= obj)]
-    pbest_obj = np.array([pbest_obj, obj]).min(axis=0)
-    gbest = pbest[:, pbest_obj.argmin()]
-    gbest_obj = pbest_obj.min()
-
-# Set up base figure: The 3D plot
-fig = plt.figure()
-plt.style.use('dark_background')
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(x, y, z, cmap='viridis', alpha=0.5)
-ax.scatter([x_min], [y_min], [f(x_min, y_min)], marker='x', s=50, color="red")
-pbest_plot = ax.scatter(pbest[0], pbest[1], pbest[2], marker='o', color='black', alpha=0.5)
-p_plot = ax.scatter(X[0], X[1], X[2], marker='o', color='blue', alpha=0.5)
-p_arrow = ax.quiver(X[0], X[1], X[2], V[0], V[1], V[2], color='blue', alpha=0.5)
-
-# Animate Plot
-ani = FuncAnimation(fig, update, frames=100, interval=100, blit=True)
-ani.save('Gradient_Surface.gif', writer='pillow')
+if __name__ == '__main__':
+    pso_sphere(n_particles=30, n_iterations=20)
 #+end_src
 
+#+RESULTS:
+:RESULTS:
+# [goto error]
+#+begin_example
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mValueError[0m                                Traceback (most recent call last)
+Cell [0;32mIn[16], line 43[0m
+[1;32m     40[0m         plt[38;5;241m.[39mclose(fig)
+[1;32m     42[0m [38;5;28;01mif[39;00m [38;5;18m__name__[39m [38;5;241m==[39m [38;5;124m'[39m[38;5;124m__main__[39m[38;5;124m'[39m:
+[0;32m---> 43[0m     [43mpso_sphere[49m[43m([49m[43mn_particles[49m[38;5;241;43m=[39;49m[38;5;241;43m30[39;49m[43m,[49m[43m [49m[43mn_iterations[49m[38;5;241;43m=[39;49m[38;5;241;43m20[39;49m[43m)[49m
+
+Cell [0;32mIn[16], line 28[0m, in [0;36mpso_sphere[0;34m(n_particles, n_iterations, w, c1, c2)[0m
+[1;32m     26[0m pbest_vals [38;5;241m=[39m sphere([38;5;241m*[39mpbest[38;5;241m.[39mT)
+[1;32m     27[0m swarm_vals [38;5;241m=[39m sphere([38;5;241m*[39mswarm[38;5;241m.[39mT)
+[0;32m---> 28[0m new_pbest [38;5;241m=[39m [43mnp[49m[38;5;241;43m.[39;49m[43mwhere[49m[43m([49m[43mpbest_vals[49m[38;5;241;43m<[39;49m[43mswarm_vals[49m[43m,[49m[43m [49m[43mpbest[49m[43m,[49m[43m [49m[43mswarm[49m[43m)[49m
+[1;32m     29[0m gbest [38;5;241m=[39m new_pbest[np[38;5;241m.[39margmin(sphere([38;5;241m*[39mnew_pbest[38;5;241m.[39mT)), :]
+[1;32m     30[0m pbest [38;5;241m=[39m new_pbest
+
+File [0;32m<__array_function__ internals>:180[0m, in [0;36mwhere[0;34m(*args, **kwargs)[0m
+
+[0;31mValueError[0m: operands could not be broadcast together with shapes (30,) (30,3) (30,3)
 #+end_example
-[[file:gradient_sphere.gif]]
 :END:
