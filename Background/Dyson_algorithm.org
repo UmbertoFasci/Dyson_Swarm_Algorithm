@@ -61,6 +61,7 @@ def update():
 
 # Set up base figure: The 3D plot
 fig = plt.figure()
+plt.style.use('dark_background')
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(x, y, z, cmap='viridis', alpha=0.5)
 ax.scatter([x_min], [y_min], [f(x_min, y_min)], marker='x', s=50, color="red")
@@ -72,3 +73,7 @@ p_arrow = ax.quiver(X[0], X[1], X[2], V[0], V[1], V[2], color='blue', alpha=0.5)
 ani = FuncAnimation(fig, update, frames=100, interval=100, blit=True)
 ani.save('Gradient_Surface.gif', writer='pillow')
 #+end_src
+
+#+end_example
+[[file:gradient_sphere.gif]]
+:END:
